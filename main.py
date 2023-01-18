@@ -37,7 +37,8 @@ label_list = [
     ,["Polygon spikiness",        0.3]
     ,["Polygon num vertices",     15]
     ,["X Axis position",          100]
-    ,["Y Axis position",          50]]
+    ,["Y Axis position",          50]
+    ,["Making movie",             0]]
 L = []
 for i, label in enumerate(label_list):
     L.append("nothing")
@@ -103,6 +104,9 @@ def proces():
     i += 1
     global y_axis
     y_axis = float(Entry.get(E[i]))
+    i += 1
+    global MAKING_MOVIE
+    MAKING_MOVIE = str(Entry.get(E[i])) != "0"
     top.destroy()
 
 B=Button(top, text ="Generate",command= proces).grid(row=19,column=1)
@@ -286,23 +290,24 @@ for i in range(100):
             first_ring_geoseries.plot(ax=ax[0], color='blue', edgecolor = 'blue', linewidth=1)
             util.write_gcode(OUTPUT_FILE_NAME, line, LINE_WIDTH, LAYER_HEIGHT, FILAMENT_DIAMETER, ARC_E_MULTIPLIER, FEEDRATE, False)
 
+            if MAKING_MOVIE:
             #Make image
-            #file_name = util.image_number(image_name_list)
-            #plt.savefig(file_name, dpi=200)
-            #image_name_list.append(file_name + ".png")
+                file_name = util.image_number(image_name_list)
+                plt.savefig(file_name, dpi=200)
+                image_name_list.append(file_name + ".png")
 
-"""
 # Turn images into gif + MP4
-print("Making gif")
-with imageio.get_writer('output/output_gif.gif', mode='I', fps=20) as writer:
-    for file_name in image_name_list:
-        image = imageio.imread(file_name)
-        writer.append_data(image)
+if MAKING_MOVIE:
+    print("Making gif")
+    with imageio.get_writer('output/output_gif.gif', mode='I', fps=20) as writer:
+        for file_name in image_name_list:
+            image = imageio.imread(file_name)
+            writer.append_data(image)
 
-print("Making movie")
-clip = mp.VideoFileClip("output/output_gif.gif")
-clip.write_videofile("output/output_video.mp4")
-"""
+    print("Making movie")
+    clip = mp.VideoFileClip("output/output_gif.gif")
+    clip.write_videofile("output/output_video.mp4")
+
 # Build a few layers on top of the overhanging area
 for i in range(10):
     util.write_gcode(OUTPUT_FILE_NAME, Polygon(boundary_line).buffer(-LINE_WIDTH/2), LINE_WIDTH, LAYER_HEIGHT, FILAMENT_DIAMETER, ARC_E_MULTIPLIER, FEEDRATE*3, close_loop=True)
