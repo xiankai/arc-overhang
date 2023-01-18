@@ -292,8 +292,9 @@ for i in range(100):
             util.write_gcode(OUTPUT_FILE_NAME, line, LINE_WIDTH, LAYER_HEIGHT, FILAMENT_DIAMETER, ARC_E_MULTIPLIER, FEEDRATE, False)
 
             if MAKING_MOVIE:
-            #Make image
+                #Make image
                 file_name = util.image_number(image_name_list)
+                print("Making image #", file_name)
                 plt.savefig(file_name, dpi=200)
                 image_name_list.append(file_name + ".png")
 
