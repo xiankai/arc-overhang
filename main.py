@@ -12,8 +12,9 @@ import imageio
 import os
 from tkinter import *
 import tk
-import tkinter 
+import tkinter
 from tkinter import messagebox
+from polygon import base_poly
 
 
 top = tkinter.Tk()
@@ -143,16 +144,16 @@ with open('input/start.gcode','r') as start_gcode, open(OUTPUT_FILE_NAME,'a') as
 #base_poly = util.create_rect(150, 20, 20, 20, True)
 
 # Make the base polygon a randomly generated shape
-base_poly = Polygon(util.generate_polygon(center=(x_axis, y_axis),
-                                         avg_radius=avg_radius,
-                                         irregularity=irregularity,
-                                         spikiness=spikiness,
-                                         num_vertices=num_vertices,))
+#base_poly = Polygon(util.generate_polygon(center=(x_axis, y_axis),
+#                                         avg_radius=avg_radius,
+#                                         irregularity=irregularity,
+#                                         spikiness=spikiness,
+#                                         num_vertices=num_vertices,))
 
 # Find starting edge (in this implementation, it just finds the largest edge to start from.
 # TODO Allow multiple starting points
 # TODO Come up with some way to determine starting edges based on geometry of previous layer
- 
+
 p1, p2 = util.longest_edge(base_poly)
 starting_line = LineString([p1, p2])
 
@@ -182,15 +183,15 @@ with open(OUTPUT_FILE_NAME, 'a') as gcode_file:
     gcode_file.write(f"G1 Z{'{0:.3f}'.format(curr_z)} F500\n")
     gcode_file.write(";Generating first layer\n")
     gcode_file.write("G1 E3.8\n")  # Unretract
-    
+
 # Fill in circles from outside to inside
 while curr_z < BASE_HEIGHT:
-    starting_tower_r = r_start + BRIM_WIDTH  
+    starting_tower_r = r_start + BRIM_WIDTH
     while starting_tower_r > LINE_WIDTH*2:
         first_layer_circle = util.create_circle(starting_point.x, starting_point.y, starting_tower_r, N)
         util.write_gcode(OUTPUT_FILE_NAME, first_layer_circle, LINE_WIDTH, LAYER_HEIGHT, FILAMENT_DIAMETER, 2, FEEDRATE*5, close_loop=True)
         starting_tower_r -= LINE_WIDTH*2
-    
+
     curr_z += LAYER_HEIGHT
     with open(OUTPUT_FILE_NAME, 'a') as gcode_file:
         gcode_file.write(f"G1 Z{'{0:.3f}'.format(curr_z)} F500\n")
@@ -198,8 +199,8 @@ while curr_z < BASE_HEIGHT:
 with open(OUTPUT_FILE_NAME, 'a') as gcode_file:
     gcode_file.write(f"G1 Z{'{0:.3f}'.format(curr_z)} F500\n")
     gcode_file.write(";Generating tower\n")
-    gcode_file.write("M106 S255 ;Turn on fan to max power\n") 
-    
+    gcode_file.write("M106 S255 ;Turn on fan to max power\n")
+
 while curr_z < OVERHANG_HEIGHT:
     util.write_gcode(OUTPUT_FILE_NAME, starting_line.buffer(LINE_WIDTH), LINE_WIDTH, LAYER_HEIGHT, FILAMENT_DIAMETER, 2, FEEDRATE*5, close_loop=True)
     with open(OUTPUT_FILE_NAME, 'a') as gcode_file:
@@ -217,7 +218,7 @@ small_arc_radius = 0.5 # Arcs smaller than this get reduced speed and/or flow se
 curr_arc = starting_arc
 
 # Overlap arc with the starting line
-starting_point = util.move_toward_point(starting_point, affinity.rotate(p1, 90, LineString([p1, p2]).centroid), LINE_WIDTH*0.5) 
+starting_point = util.move_toward_point(starting_point, affinity.rotate(p1, 90, LineString([p1, p2]).centroid), LINE_WIDTH*0.5)
 
 # Create arcs until we reach the edge of the polygon
 while r < r_start-THRESHOLD:
@@ -237,17 +238,17 @@ while r < r_start-THRESHOLD:
     if r < small_arc_radius:
         speed_modifier = 0.25
         e_modifier = 0.25
-    else: 
+    else:
         speed_modifier = 1
         e_modifier = 1
 
     # Write gcode to file
     util.write_gcode(OUTPUT_FILE_NAME, next_arc, LINE_WIDTH, LAYER_HEIGHT, FILAMENT_DIAMETER, ARC_E_MULTIPLIER*e_modifier, FEEDRATE*speed_modifier, close_loop=False)
-    
+
     r += LINE_WIDTH
-    
+
     # Create image
-    #file_name = util.image_number(image_name_list)   
+    #file_name = util.image_number(image_name_list)
     #plt.savefig(file_name, dpi=200)
     #image_name_list.append(file_name + ".png")
 
@@ -255,10 +256,10 @@ remaining_empty_space = base_poly.difference(curr_arc)
 next_point, longest_distance, _ = util.get_farthest_point(curr_arc, boundary_line, base_poly)
 
 # If there's room for an arc to be built on top of the current arc, then do it!
-while longest_distance > THRESHOLD + MIN_ARCS*LINE_WIDTH: 
-    next_arc, remaining_empty_space, image_name_list = util.arc_overhang(curr_arc, boundary_line, starting_line_angle, N, 
-                                                                        remaining_empty_space, next_circle, 
-                                                                        THRESHOLD, ax, fig, 1, image_name_list, 
+while longest_distance > THRESHOLD + MIN_ARCS*LINE_WIDTH:
+    next_arc, remaining_empty_space, image_name_list = util.arc_overhang(curr_arc, boundary_line, starting_line_angle, N,
+                                                                        remaining_empty_space, next_circle,
+                                                                        THRESHOLD, ax, fig, 1, image_name_list,
                                                                         R_MAX, MIN_ARCS, LINE_WIDTH, OUTPUT_FILE_NAME,
                                                                         LAYER_HEIGHT, FILAMENT_DIAMETER, ARC_E_MULTIPLIER,
                                                                         FEEDRATE)
@@ -286,7 +287,7 @@ for i in range(100):
             util.write_gcode(OUTPUT_FILE_NAME, line, LINE_WIDTH, LAYER_HEIGHT, FILAMENT_DIAMETER, ARC_E_MULTIPLIER, FEEDRATE, False)
 
             #Make image
-            #file_name = util.image_number(image_name_list)   
+            #file_name = util.image_number(image_name_list)
             #plt.savefig(file_name, dpi=200)
             #image_name_list.append(file_name + ".png")
 
@@ -307,7 +308,7 @@ for i in range(10):
     util.write_gcode(OUTPUT_FILE_NAME, Polygon(boundary_line).buffer(-LINE_WIDTH/2), LINE_WIDTH, LAYER_HEIGHT, FILAMENT_DIAMETER, ARC_E_MULTIPLIER, FEEDRATE*3, close_loop=True)
     with open(OUTPUT_FILE_NAME, 'a') as gcode_file:
         gcode_file.write(f"G1 Z{'{0:.3f}'.format(curr_z+LAYER_HEIGHT*i)} F500\n")
-        
+
 # Write end gcode
 with open('input/end.gcode','r') as end_gcode, open(OUTPUT_FILE_NAME,'a') as gcode_file:
     for line in end_gcode:
