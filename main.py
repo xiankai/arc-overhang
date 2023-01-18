@@ -215,6 +215,7 @@ curr_z -= LAYER_HEIGHT*2
 
 with open(OUTPUT_FILE_NAME, 'a') as gcode_file:
         gcode_file.write(f"G1 Z{'{0:.3f}'.format(curr_z)} F500\n")
+        gcode_file.write(f";Finished with tower\n")
 
 # Create multiple layers
 r = LINE_WIDTH
