@@ -21,8 +21,8 @@ top = tkinter.Tk()
 top.title("Arc GEN")
 label_list = [
      ["Arc generator",            0]
-    ,["Line width",               0.35]
-    ,["Layer height",             0.4]
+    ,["Line width",               0.42]
+    ,["Layer height",             0.2]
     ,["Arc extrusion multiplier", 1.05]
     ,["Feedrate",                 2]
     ,["BrimWidth",                5]
